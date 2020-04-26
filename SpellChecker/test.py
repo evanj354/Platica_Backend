@@ -2,7 +2,7 @@ from spell_checker import SpellChecker
 
 def main():
     checker = SpellChecker()
-    sent = 'Matteo is my friend i hev no attencion sp'
+    sent = 'Hello ther i em Philip'
     correction = checker.correct_sentence(sent)
     print(correction)
 
