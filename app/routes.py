@@ -142,12 +142,12 @@ def pullMessages():
 
 @app.route('/generateReply', methods=['GET', 'POST'])
 def generateReply():
-    # if not current_user.is_authenticated:
-    #     return jsonify({
-    #         "status": "Page Blocked",
-    #         "authenticated": False
-    #     })
-    body = chatbot.predictResponse(request.json.get('message', 'hello'))
+    if not current_user.is_authenticated:
+        return jsonify({
+            "status": "Page Blocked",
+            "authenticated": False
+        })
+    body = chatbot.predictResponse(context=request.json.get('message', 'hello'))
     order = 2
     user = current_user
     m = Message(body=body, author=user, order=order)

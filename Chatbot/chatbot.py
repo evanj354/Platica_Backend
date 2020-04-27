@@ -5,18 +5,28 @@ from keras_wrapper.utils import decode_predictions_beam_search
 from keras_wrapper.extra.read_write import list2file
 import os
 
-MODEL_PATH = os.path.join(os.getcwd(), 'Chatbot/models/persona_chat_lstm')
-epoch_choice = 5
+MODEL_PATH = os.path.join(os.getcwd(), 'Chatbot/models/persona_chat_lstm_cpu')
+epoch_choice = 8
 
 class Chatbot:
     def __init__(self):
-        print('Initializing Chatbot...')
         dataset = loadDataset(os.path.join(MODEL_PATH, "dataset/Dataset_tutorial_dataset.pkl"))
         nmt_model = loadModel(MODEL_PATH, epoch_choice)
         params = nmt_model.params
-        print('input vocab size:' + str(params['INPUT_VOCABULARY_SIZE']))
-        print('output vocab size:' + str(params['OUTPUT_VOCABULARY_SIZE']))
-        # 17819
+        # Define the inputs and outputs mapping from our Dataset instance to our model 
+        inputMapping = dict() 
+        for i, id_in in enumerate(params['INPUTS_IDS_DATASET']): 
+            pos_source = dataset.ids_inputs.index(id_in) 
+            id_dest = nmt_model.ids_inputs[i] 
+            inputMapping[id_dest] = pos_source 
+        nmt_model.setInputsMapping(inputMapping) 
+
+        outputMapping = dict() 
+        for i, id_out in enumerate(params['OUTPUTS_IDS_DATASET']): 
+            pos_target = dataset.ids_outputs.index(id_out) 
+            id_dest = nmt_model.ids_outputs[i] 
+            outputMapping[id_dest] = pos_target 
+        nmt_model.setOutputsMapping(outputMapping)
         params_prediction = {
             'language': 'en',
             'tokenize_f': eval('dataset.' + 'tokenize_basic'),
@@ -42,7 +52,6 @@ class Chatbot:
         self.dataset = dataset
         self.model = nmt_model
         self.params = params_prediction
-        print('Model initialized')
 
     def predictResponse(self, context):
         with open(os.path.join(MODEL_PATH, 'context.txt'), 'w') as f:
@@ -83,4 +92,5 @@ class Chatbot:
             sources = None
 
         predictions = decode_predictions_beam_search(samples, vocab)
+        print('prediction: ' + predictions[0])
         return predictions[0]

@@ -1,5 +1,6 @@
 # Model data
 persona_chat_lstm
+persona_chat_lstm_cpu
 
 # Virtualenv
 env
