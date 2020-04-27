@@ -4,6 +4,7 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from Chatbot.chatbot import Chatbot
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -18,6 +19,9 @@ migrate = Migrate(app, db)
 login = LoginManager(app)
 login.login_view = 'login'
 login.session_protection = None
+
+# create Chatbot instance
+chatbot = Chatbot()
 
 CORS(app);
 

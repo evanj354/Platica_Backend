@@ -1,4 +1,4 @@
-from app import app, db
+from app import app, db, chatbot
 import os 
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Message, UserData
@@ -140,14 +140,14 @@ def pullMessages():
         )
     return jsonify(json_messages)
 
-@app.route('/generateReply')
+@app.route('/generateReply', methods=['GET', 'POST'])
 def generateReply():
-    if not current_user.is_authenticated:
-        return jsonify({
-            "status": "Page Blocked",
-            "authenticated": False
-        })
-    body = "Mock Generator"
+    # if not current_user.is_authenticated:
+    #     return jsonify({
+    #         "status": "Page Blocked",
+    #         "authenticated": False
+    #     })
+    body = chatbot.predictResponse(request.json.get('message', 'hello'))
     order = 2
     user = current_user
     m = Message(body=body, author=user, order=order)
