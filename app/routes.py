@@ -148,7 +148,10 @@ def generateReply():
             "authenticated": False
         })
     message = spell_checker.correct_sentence(request.json.get('message', 'hello'))
-    body = chatbot.predictResponse(context=message)
+    if ('bye' in message.split(' ')):
+        body = 'See you later!'
+    else:
+        body = chatbot.predictResponse(context=message)
     order = 2
     user = current_user
     m = Message(body=body, author=user, order=order)
