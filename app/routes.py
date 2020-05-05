@@ -1,4 +1,4 @@
-from app import app, db, chatbot, spell_checker
+from app import app, db, chatbot, grammar_checker, spell_checker
 import os 
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Message, UserData
@@ -114,16 +114,10 @@ def send():
     user = current_user
     current_user.userData[0].messagesSent += 1
     m = Message(body=body, author=user, order=order)
-    db.session.add(m);
-    db.session.commit();
-    return jsonify({
-        "username": user.username,
-        "authenticated": True,
-        "ID": user.get_id(),
-        "message": m.body,
-        "timestamp": m.timestamp,
-
-    })
+    db.session.add(m)
+    db.session.commit()
+    return generateReply(body)
+    
 
 @app.route('/pullMessages', methods=['GET', 'POST'])
 def pullMessages():
@@ -140,27 +134,39 @@ def pullMessages():
         )
     return jsonify(json_messages)
 
-@app.route('/generateReply', methods=['GET', 'POST'])
-def generateReply():
+# @app.route('/generateReply', methods=['GET', 'POST'])
+def generateReply(body):
     if not current_user.is_authenticated:
         return jsonify({
             "status": "Page Blocked",
             "authenticated": False
         })
-    message = spell_checker.correct_sentence(request.json.get('message', 'hello'))
-    if ('bye' in message.split(' ')):
-        body = 'See you later!'
+    message = spell_checker.correct_sentence(body)
+    chatbot_body = ''
+    if ('bye' in message):
+        chatbot_body = 'See you later!'
     else:
-        body = chatbot.predictResponse(context=message)
+        chatbot_body = chatbot.predictResponse(context=message)
+    grammar_body = 'Did you mean: ' + grammar_checker.check_grammar(input_sentence=message)        # TODO: CHECK FOR GRAMMAR MISTAKE
+
     order = 2
     user = current_user
-    m = Message(body=body, author=user, order=order)
-    db.session.add(m);
-    db.session.commit();
+    chatbot_response = Message(body=chatbot_body, author=user, order=order)
+    grammar_correction = Message(body=grammar_body, author=user, order=order)
+    db.session.add(chatbot_response)
+    db.session.add(grammar_correction)
+    db.session.commit()
     return jsonify({
-        "body": m.body,
-        "timestamp": m.timestamp,
-        "order": m.order,
+        "chatbot_response" : {
+            "body": chatbot_response.body,
+            "timestamp": chatbot_response.timestamp,
+            "order": chatbot_response.order,
+        },
+        "grammar_correction" : {
+            "body": grammar_correction.body,
+            "timestamp": grammar_correction.timestamp,
+            "order": grammar_correction.order,
+        }
     })
 
 if __name__ == "__main__":

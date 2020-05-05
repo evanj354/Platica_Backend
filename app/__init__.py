@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from Chatbot.chatbot import Chatbot
+from GrammarChecker.grammar_check import GrammarChecker
 from SpellChecker.spell_checker import SpellChecker
 
 app = Flask(__name__)
@@ -23,6 +24,7 @@ login.session_protection = None
 
 # create Chatbot instance
 chatbot = Chatbot()
+grammar_checker = GrammarChecker()
 spell_checker = SpellChecker()
 
 CORS(app);

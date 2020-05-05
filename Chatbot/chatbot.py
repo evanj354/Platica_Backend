@@ -1,7 +1,6 @@
 from keras_wrapper.dataset import loadDataset
 from keras_wrapper.cnn_model import loadModel
 from keras_wrapper.utils import decode_predictions_beam_search
-# from config import load_parameters
 from keras_wrapper.extra.read_write import list2file
 import tensorflow as tf
 import os

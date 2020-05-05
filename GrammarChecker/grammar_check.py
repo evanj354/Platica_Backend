@@ -1,13 +1,15 @@
 # First uninstall Keras, then install nmt-keras
 import tensorflow as tf
 import os
-from config import load_parameters
 from nmt_keras.model_zoo import TranslationModel
 from keras_wrapper.cnn_model import loadModel, updateModel
 from keras_wrapper.dataset import loadDataset
 from keras_wrapper.extra.callbacks import PrintPerformanceMetricOnEpochEndOrEachNUpdates
 from keras_wrapper.utils import decode_predictions_beam_search
 from keras_wrapper.extra.read_write import list2file
+
+DATA_PATH = os.path.join(os.getcwd(), 'GrammarChecker/dataset/Dataset_tutorial_dataset.pkl')
+MODEL_PATH = os.path.join(os.getcwd(), 'GrammarChecker/model')
 
 epoch_num = 3
 
@@ -17,8 +19,8 @@ class GrammarChecker:
         self.graph = tf.get_default_graph()
         with self.graph.as_default():
             with self.session.as_default():
-                dataset = loadDataset("dataset/Dataset_tutorial_dataset.pkl")
-                nmt_model = loadModel("model", epoch_num)
+                dataset = loadDataset(DATA_PATH)
+                nmt_model = loadModel(MODEL_PATH, epoch_num)
                 params = nmt_model.params
                 inputMapping = dict() 
                 for i, id_in in enumerate(params['INPUTS_IDS_DATASET']): 
