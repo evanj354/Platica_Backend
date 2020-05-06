@@ -10,6 +10,7 @@ class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(64), index=True, unique=True)
   password_hash = db.Column(db.String(128))
+  lastLogin = db.Column(db.DateTime, index=True, default=datetime.utcnow)
   messages = db.relationship('Message', backref='author', lazy='dynamic')
   userData = db.relationship('UserData', backref='author', lazy='dynamic')
 
@@ -45,6 +46,9 @@ class Message(db.Model):
 class UserData(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   messagesSent = db.Column(db.Integer)
+  wordCount = db.Column(db.Integer)
+  loginStreak = db.Column(db.Integer)
+  correctSentences = db.Column(db.Integer)
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
   def __repr__(self):

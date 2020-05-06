@@ -1,5 +1,6 @@
 from app import app, db, chatbot, grammar_checker, spell_checker
 import os 
+from datetime import datetime, timedelta
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Message, UserData
 import sys
@@ -33,8 +34,14 @@ def login():
                 "authenticated": False
             })
         login_user(user, remember=True)
+        current_date = datetime.now()
+        lastLogin = user.lastLogin
+        if (current_date - timedelta(hours=24) < lastLogin) and (current_date.day > lastLogin.day):
+        	user.userData[0].loginStreak += 1
+        user.lastLogin = current_date
         return jsonify({
             "status": "Logged In",
+            "lastLogin": lastLogin,
             "currentUser": username,
             "authenticated": current_user.is_authenticated
         })
@@ -75,7 +82,7 @@ def register():
     user = User(username=username)
     user.set_password(password)
     db.session.add(user)
-    data = UserData(messagesSent=0, author=user)
+    data = UserData(messagesSent=0, wordCount=0, loginStreak=0, correctSentences=0,  author=user)
     db.session.add(data)
     db.session.commit()
     login_user(user, remember=True)
@@ -99,7 +106,10 @@ def landing():
         "username": username,
         "authenticated": True,
         "ID": current_user.get_id(),
-        "messagesSent": current_user.userData[0].messagesSent
+        "messagesSent": current_user.userData[0].messagesSent,
+        "wordCount": current_user.userData[0].wordCount,
+        "loginStreak": current_user.userData[0].loginStreak,
+        "correctSentences": current_user.userData[0].correctSentences
     })
 
 @app.route('/send', methods=['GET', 'POST'])
@@ -113,10 +123,17 @@ def send():
     order = request.json.get('order', None)
     user = current_user
     current_user.userData[0].messagesSent += 1
+    messagesSent = current_user.userData[0].messagesSent
+    current_user.userData[0].wordCount += len(body.split(" "))
     m = Message(body=body, author=user, order=order)
     db.session.add(m)
     db.session.commit()
     return generateReply(body)
+ #    return jsonify({
+ #    	"messagesSent": messagesSent,
+ #    	"totalWords": user.userData[0].wordCount,
+ #    	"timestamp": current_user.messages[messagesSent-1].timestamp	
+	# })
     
 
 @app.route('/pullMessages', methods=['GET', 'POST'])
@@ -141,20 +158,31 @@ def generateReply(body):
             "status": "Page Blocked",
             "authenticated": False
         })
+    user = current_user
     message = spell_checker.correct_sentence(body)
     chatbot_body = ''
     if ('bye' in message):
         chatbot_body = 'See you later!'
     else:
         chatbot_body = chatbot.predictResponse(context=message)
-    grammar_body = 'Did you mean: ' + grammar_checker.check_grammar(input_sentence=message)        # TODO: CHECK FOR GRAMMAR MISTAKE
+
+    grammar_correction_response = grammar_checker.check_grammar(input_sentence=message)
+    stripped_message = stripChars(message)
+    stripped_correction = stripChars(grammar_correction_response)
+    grammar_body = ''
+    if stripped_message == stripped_correction:
+    	user.userData[0].correctSentences += 1
+    else:
+    	grammar_body = 'Did you mean: ' + grammar_correction_response        # TODO: CHECK FOR GRAMMAR MISTAKE
 
     order = 2
-    user = current_user
     chatbot_response = Message(body=chatbot_body, author=user, order=order)
-    grammar_correction = Message(body=grammar_body, author=user, order=order)
+    
+    
     db.session.add(chatbot_response)
-    db.session.add(grammar_correction)
+    if grammar_body != '':
+    	grammar_correction = Message(body=grammar_body, author=user, order=order)
+    	db.session.add(grammar_correction)
     db.session.commit()
     return jsonify({
         "chatbot_response" : {
@@ -163,11 +191,17 @@ def generateReply(body):
             "order": chatbot_response.order,
         },
         "grammar_correction" : {
-            "body": grammar_correction.body,
-            "timestamp": grammar_correction.timestamp,
-            "order": grammar_correction.order,
+            "body": grammar_body,
+            "timestamp": 0 if grammar_body=='' else grammar_correction.timestamp,
+            "order": 0 if grammar_body=='' else grammar_correction.order,
         }
     })
+
+
+def stripChars(sequence):
+	toRemove = set(['.', '?', ' '])
+	return ''.join([c for c in sequence if c not in toRemove]).lower()
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
