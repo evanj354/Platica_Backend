@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Message, UserData
 import sys
+import re
 from flask import (
     jsonify,
     request,
@@ -129,11 +130,6 @@ def send():
     db.session.add(m)
     db.session.commit()
     return generateReply(body)
- #    return jsonify({
- #    	"messagesSent": messagesSent,
- #    	"totalWords": user.userData[0].wordCount,
- #    	"timestamp": current_user.messages[messagesSent-1].timestamp	
-	# })
     
 
 @app.route('/pullMessages', methods=['GET', 'POST'])
@@ -161,16 +157,17 @@ def generateReply(body):
     user = current_user
     message = spell_checker.correct_sentence(body)
     chatbot_body = ''
-    if ('bye' in message):
+    if ('bye' in message.lower()):
         chatbot_body = 'See you later!'
     else:
         chatbot_body = chatbot.predictResponse(context=message)
 
+    chatbot_body = formatChatbotResponse(chatbot_body)
     grammar_correction_response = grammar_checker.check_grammar(input_sentence=message)
     stripped_message = stripChars(message)
     stripped_correction = stripChars(grammar_correction_response)
     grammar_body = ''
-    if stripped_message == stripped_correction:
+    if stripped_message == stripped_correction or len(message.split(' ')) <= 2:
     	user.userData[0].correctSentences += 1
     else:
     	grammar_body = 'Did you mean: ' + grammar_correction_response        # TODO: CHECK FOR GRAMMAR MISTAKE
@@ -202,6 +199,12 @@ def stripChars(sequence):
 	toRemove = set(['.', '?', ' '])
 	return ''.join([c for c in sequence if c not in toRemove]).lower()
 
+def formatChatbotResponse(sentence):
+    sentence = re.sub(r'^i', 'I', sentence)
+    sentence = re.sub(r' i ', ' I ', sentence)
+    sentence = re.sub(r'i$', 'I', sentence)
+    sentence = re.sub(r' ([.?!])', r'\1', sentence)
+    return sentence
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
