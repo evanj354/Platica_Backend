@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "wired-freehold-201700",
+  "private_key_id": "bdc87465945ce0d9f8ceec34de70881db57e973b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDBoR+Hw7QwAeJp\n7WPGsFNKLNXcZr6uNjvfC1WcxA/ceeC/1Ux3wQEvohNChRRHlLNvmE/loepKp3au\nkjEba15Tg/o3yeReIUdZ70Ge7XHogGdtGyfbz4pSDn/RRZGBdt9VVd3E9aGAUnY0\n+TvKN+40TwnjX89qi7tLnTiGHeysHq9GkI8o1+wqj5Ui6I4Pi06PB/J4oV2MwGQF\nxTYIoCb7OBOnp9dBvArmi4LYAMSnj81HWcy7HwsvXeHrO2WezSJCaSXKXh9VYuRj\nlARVZ1mrV5V7QiD7TFCgby3P2F249RvDX1d75yejDV4hzbXFbuc0mfatS23Oq4Bs\nYsw1aqBRAgMBAAECggEAGCTrNZalpUbW4LaFNoVOHXWxxSXaqQaCOLHFHyMjhy57\nY/BI9LXQXAwtsqG9gZ99MHEhpVSnTl/LYMFB9lVREcDnNoWqQEKODxzSZerdxUwd\nmXFFaxdZ/BlqvsGZ/za/animiqTGWqXtr3VUi0amIUepx/xudK6v0CHupmqc1GlX\nj3SlCjPk3k9fLkx0Kkk2eVXfPHM5rMu9fbrSieA4WE6BIqWQLYFiGd1iQ8aCmzHr\nA50FA4zUeKuYmreWZ3UqTfh0wRY67+Urgb7ClULpqP1Uh/lta11TDiKPgmD/e9Sm\nR5JqMio+w/1H07JYVGwZscA/IYE0hi1FxD0xUj5TQQKBgQDkCdOB+Z5hGoPWAFpE\nMJEEM/WpWH8Vuhcx+G+CGBQwCS8Hf63QWfMiMBvdxbtzLI4qYZ4lT3QwaNCX6Aqx\nNy3Yg6bo9wELoa44GZqkPkGSmc8Glvuv0mRL41nXz/6AMtDX8xgkeQTR6wMkGaq9\ndItMHuZex6DAn+PSt0VrSy3RHQKBgQDZXzDxpz0UtHCSOR9QzWRGhElG7C4eOH2E\ndRQIv/eIaLxwvaH5RrfBI7gRTKOZWkj90k8+paBUBlScZCvIW7tNJ83OQepLxb8X\nlbaTtz3ewR5gXMITR+VvxEzrldOKq7qw8rcq2SS3w3D7uWBeepo8S6XINdoamBsi\nUeey4fp5xQKBgFbKQpyyU4wjmk+lnLVdQqQ13mbQjrXHOLLFGjOKVIyfwi15c77b\nrUSyyLhUXG6OY6FPu+/5WIBgNBvMrd0a4jEIkksST2yM4ZDqdcfTBgP01C1u42Xc\njl2vru8Lc5J5RLEcDXE8OhBnALAJsMkghS+4hvdFxTHq6Lu3Ew2t9EclAoGAboB5\nvR8rae8gmvT2+nivVTnClo9SEoLdLAzollogV/QGd7mvMa3FlCW4WPMA5+CB4qab\nKlnAW3asZKR3rW8UlHB7qzLPDJ4GOtMc8ZLhnO/HpW0CLBMMi/jasZiE5aXPTkzU\n2K9yfwiX0x+14dGpvqUmLdVSftp8UMIaa1F9p5ECgYA6B9EolxFqYDZfm5zhghO+\nhdJA4wByJLnAfii2lGWPACF/PMajKntY62V2cv07hhPald7l1tnhL57DfKBItghu\nN83In7YA3mkSsyOlIaJxG/X+NmyRBPybrEfJQaOdAUHNPEdUmFM15/QHdLyhWzuv\n+ox7dRsaRwhJzTeXu+En8A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "platica@wired-freehold-201700.iam.gserviceaccount.com",
+  "client_id": "107601200156506577904",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/platica%40wired-freehold-201700.iam.gserviceaccount.com"
+}

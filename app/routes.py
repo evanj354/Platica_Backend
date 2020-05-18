@@ -1,3 +1,6 @@
+from app.helper.messageData import getMessageData, getDateChunks
+import threading
+import json
 from app import app, db, chatbot, grammar_checker, spell_checker
 import os 
 from datetime import datetime, timedelta
@@ -10,6 +13,8 @@ from flask import (
     request,
     redirect
 )
+import speech_recognition as sr
+from werkzeug.datastructures import ImmutableMultiDict
 
 @app.route('/')
 
@@ -92,7 +97,8 @@ def register():
         "authenticated": True
     })
 
-    
+ 
+
 @app.route('/landing', methods=['GET', 'POST'])
 def landing():
     if not current_user.is_authenticated:
@@ -100,18 +106,52 @@ def landing():
             "status": "Page Blocked",
             "authenticated": False
         })
-    
+    period = request.json.get('period', None)
     user = User.query.filter_by(id=current_user.get_id()).first()
-    username = user.username
+    messages = Message.query.filter_by(order=1, user_id=user.id).all()
+
+
+    # message_chunks = getMessageData(messages, period)
+    # correct_rates = [(sum(message_chunk)/len(message_chunk)*100 if len(message_chunk) else 0) for message_chunk in message_chunks]
+
+    # date_chunks = getDateChunks(period)
+
     return jsonify({
-        "username": username,
+        "username": user.username,
         "authenticated": True,
-        "ID": current_user.get_id(),
-        "messagesSent": current_user.userData[0].messagesSent,
-        "wordCount": current_user.userData[0].wordCount,
-        "loginStreak": current_user.userData[0].loginStreak,
-        "correctSentences": current_user.userData[0].correctSentences
+        # "ID": current_user.get_id(),
+        # "messagesSent": current_user.userData[0].messagesSent,
+        # "wordCount": current_user.userData[0].wordCount,
+        # "loginStreak": current_user.userData[0].loginStreak,
+        # "correctSentences": current_user.userData[0].correctSentences,
+        # "message_chunks": correct_rates,
+        # "date_chunks": date_chunks
     })
+
+@app.route('/getAudio', methods=['GET', 'POST'])
+def getAudio():
+	if "file" not in request.files:
+		return jsonify({
+			"status": "No File Provided"	
+		})	
+	file = request.files['file']
+	text = ""
+
+	if file:
+		data = None
+		with open("speechToText.json", "r") as config_file:
+			data = json.dumps(json.load(config_file))
+		recognizer = sr.Recognizer()
+		audio_file = sr.AudioFile(file)
+		with audio_file as source:
+			audio_data = recognizer.record(source)
+			text = recognizer.recognize_google_cloud(audio_data, credentials_json=data)
+		return jsonify({
+			"body": text
+		})
+	return jsonify({
+		"status": "No File"
+	})
 
 @app.route('/send', methods=['GET', 'POST'])
 def send():
@@ -154,14 +194,29 @@ def generateReply(body):
             "status": "Page Blocked",
             "authenticated": False
         })
+    # return jsonify({
+	   #  "chatbot_response" : {
+	   #      "body": "Response",
+	   #      "timestamp": 10,
+	   #      "order": 2
+	   #  },
+	   #  "grammar_correction" : {
+    #         "body": "Response",
+    #         "timestamp": 10,
+    #         "order": 2
+    #     }
+    # })
+
     user = current_user
     message = spell_checker.correct_sentence(body)
     chatbot_body = ''
+    print('Before Prediction')
+    print('NUMBER OF THREADS: ', threading.active_count())
     if ('bye' in message.lower()):
         chatbot_body = 'See you later!'
     else:
         chatbot_body = chatbot.predictResponse(context=message)
-
+    print('DOne Predicting')
     chatbot_body = formatChatbotResponse(chatbot_body)
     grammar_correction_response = grammar_checker.check_grammar(input_sentence=message)
     stripped_message = stripChars(message)
@@ -193,6 +248,7 @@ def generateReply(body):
             "order": 0 if grammar_body=='' else grammar_correction.order,
         }
     })
+
 
 
 def stripChars(sequence):

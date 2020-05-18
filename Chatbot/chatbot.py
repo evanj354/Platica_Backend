@@ -5,8 +5,8 @@ from keras_wrapper.extra.read_write import list2file
 import tensorflow as tf
 import os
 
-MODEL_PATH = os.path.join(os.getcwd(), 'Chatbot/models/persona_chat_lstm_cpu')
-epoch_choice = 8
+MODEL_PATH = os.path.join(os.getcwd(), 'Chatbot/models/persona_and_empathy_100_hidden_cpu')
+epoch_choice = 18
 
 class Chatbot:
     def __init__(self):
