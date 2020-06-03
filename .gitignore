@@ -3,6 +3,7 @@ persona_chat_lstm
 persona_chat_lstm_cpu
 dataset
 model
+models
 user_input.txt
 
 # Virtualenv

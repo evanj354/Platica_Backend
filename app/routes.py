@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Message, UserData
 import sys
-import re
+import truecase
 from flask import (
     jsonify,
     request,
@@ -111,21 +111,22 @@ def landing():
     messages = Message.query.filter_by(order=1, user_id=user.id).all()
 
 
-    # message_chunks = getMessageData(messages, period)
-    # correct_rates = [(sum(message_chunk)/len(message_chunk)*100 if len(message_chunk) else 0) for message_chunk in message_chunks]
+    message_chunks = getMessageData(messages, period)
+    print("MEssage CHUNKS ", message_chunks)
+    correct_rates = [(sum(message_chunk)/len(message_chunk)*100 if len(message_chunk) else 0) for message_chunk in message_chunks]
 
-    # date_chunks = getDateChunks(period)
+    date_chunks = getDateChunks(period)
 
     return jsonify({
         "username": user.username,
         "authenticated": True,
-        # "ID": current_user.get_id(),
-        # "messagesSent": current_user.userData[0].messagesSent,
-        # "wordCount": current_user.userData[0].wordCount,
-        # "loginStreak": current_user.userData[0].loginStreak,
-        # "correctSentences": current_user.userData[0].correctSentences,
-        # "message_chunks": correct_rates,
-        # "date_chunks": date_chunks
+        "ID": current_user.get_id(),
+        "messagesSent": current_user.userData[0].messagesSent,
+        "wordCount": current_user.userData[0].wordCount,
+        "loginStreak": current_user.userData[0].loginStreak,
+        "correctSentences": current_user.userData[0].correctSentences,
+        "message_chunks": correct_rates,
+        "date_chunks": date_chunks
     })
 
 @app.route('/getAudio', methods=['GET', 'POST'])
@@ -168,8 +169,7 @@ def send():
     current_user.userData[0].wordCount += len(body.split(" "))
     m = Message(body=body, author=user, order=order)
     db.session.add(m)
-    db.session.commit()
-    return generateReply(body)
+    return generateReply(body, m)
     
 
 @app.route('/pullMessages', methods=['GET', 'POST'])
@@ -188,7 +188,7 @@ def pullMessages():
     return jsonify(json_messages)
 
 # @app.route('/generateReply', methods=['GET', 'POST'])
-def generateReply(body):
+def generateReply(body, db_message):
     if not current_user.is_authenticated:
         return jsonify({
             "status": "Page Blocked",
@@ -208,7 +208,7 @@ def generateReply(body):
     # })
 
     user = current_user
-    message = spell_checker.correct_sentence(body)
+    message = addPunctuation(spell_checker.correct_sentence(truecase.get_true_case(body)))		# fix capitalization, spelling, and punctuation
     chatbot_body = ''
     print('Before Prediction')
     print('NUMBER OF THREADS: ', threading.active_count())
@@ -217,16 +217,18 @@ def generateReply(body):
     else:
         chatbot_body = chatbot.predictResponse(context=message)
     print('DOne Predicting')
-    chatbot_body = formatChatbotResponse(chatbot_body)
+    chatbot_body = truecase.get_true_case(chatbot_body)
     grammar_correction_response = grammar_checker.check_grammar(input_sentence=message)
     stripped_message = stripChars(message)
     stripped_correction = stripChars(grammar_correction_response)
     grammar_body = ''
     if stripped_message == stripped_correction or len(message.split(' ')) <= 2:
     	user.userData[0].correctSentences += 1
+    	db_message.correct = 1
     else:
-    	grammar_body = 'Did you mean: ' + grammar_correction_response        # TODO: CHECK FOR GRAMMAR MISTAKE
-
+    	formatted_grammar_response = truecase.get_true_case(grammar_correction_response)
+    	grammar_body = 'Did you mean: ' + formatted_grammar_response
+    	db_message.correct = 0
     order = 2
     chatbot_response = Message(body=chatbot_body, author=user, order=order)
     
@@ -252,15 +254,19 @@ def generateReply(body):
 
 
 def stripChars(sequence):
-	toRemove = set(['.', '?', ' '])
+	toRemove = set(['.', '?', ' ', '!'])
 	return ''.join([c for c in sequence if c not in toRemove]).lower()
 
-def formatChatbotResponse(sentence):
-    sentence = re.sub(r'^i', 'I', sentence)
-    sentence = re.sub(r' i ', ' I ', sentence)
-    sentence = re.sub(r'i$', 'I', sentence)
-    sentence = re.sub(r' ([.?!])', r'\1', sentence)
+def addPunctuation(sentence):
+    punctuation = ['.', '?', '!']
+    if (sentence[-1] in punctuation):       # already puncuated
+        return sentence
+    question_words = ['who', 'what', 'where', 'when', 'why', 'how', 'do', 'which']
+    if (0 in [sentence.lower().find(question_word) for question_word in question_words]):  # if sentence begins with question_word
+        sentence += '?'
     return sentence
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
