@@ -1,5 +1,6 @@
 # PLATICA_Backend
 Backend of PLATICA mobile application running on Flask
+Frontend: https://github.com/evanj354/ChatUI
 
 ## Installation
 
