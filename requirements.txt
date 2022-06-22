@@ -42,7 +42,7 @@ multimodal-keras-wrapper==3.0.6
 networkx==2.4
 -e git+https://github.com/lvapeab/nmt-keras@1a5b93c348a5391e2f02f0c2eb0e4b18fa4f8698#egg=nmt_keras
 numexpr==2.7.1
-numpy==1.18.2
+numpy==1.22.0
 oauthlib==3.1.0
 opt-einsum==3.2.0
 pandas==1.0.3
